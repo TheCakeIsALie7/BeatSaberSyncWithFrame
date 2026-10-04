@@ -1,6 +1,6 @@
 ﻿{
     "source": "C:\\Path\\To\\BeatSaber_Data\\CustomLevels",
-    "frameHost": "192.168.0.18",
+    "frameHost": "FRAME_IP",
     "frameUser": "steamos",
     "framePath": "/home/steamos/.local/share/Steam/steamapps/common/Beat Saber/Beat Saber_Data/CustomLevels",
     "sshKey": "C:\\Users\\YourUser\\.ssh\\id_ed25519_frame"
