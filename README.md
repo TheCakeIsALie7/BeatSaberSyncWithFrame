@@ -58,6 +58,7 @@ No additional software is required on the Steam Frame.
 Clone the repository:
 
 ```powershell
+cd $env:USERPROFILE
 git clone https://github.com/TheCakeIsALie7/BeatSaberSyncWithFrame.git
 cd BeatSaberSyncWithFrame
 ```
