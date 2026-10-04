@@ -260,6 +260,12 @@ Get-Command ssh-keygen
 * No conflict resolution is implemented.
 * The GUI is launched through PowerShell rather than a compiled executable.
 
+## Known bugs
+
+* The first-time SSH setup opens a separate PowerShell window for password entry.
+* Error handling and compatibility with other Windows or Steam Frame configurations may still need improvement.
+
+
 ## Contributing
 
 Bug reports, compatibility reports and improvements are welcome.
@@ -267,6 +273,10 @@ Bug reports, compatibility reports and improvements are welcome.
 If you test the project on another PC, Steam Frame or Beat Saber version, please report the configuration and whether synchronization worked correctly.
 
 ## License
+
+
+
+
 
 MIT License.
 
