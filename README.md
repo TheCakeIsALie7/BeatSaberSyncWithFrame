@@ -1,21 +1,22 @@
 # Beat Saber Sync
 
-Incremental synchronization of Beat Saber custom songs from a Windows PC to a Steam Frame using SSH/SCP.
+Sync Beat Saber custom songs from a Windows PC to a Steam Frame.
 
-The sync runs entirely on the Windows PC. The Steam Frame only receives the song files.
+The recommended way to use the project is the Windows GUI. It handles configuration, SSH setup, connection testing and synchronization.
 
 Unofficial hobby project, not affiliated with or endorsed by Valve.
 
 ## Features
 
-* Detects new Beat Saber custom songs.
-* Detects modified songs.
-* Transfers only new or changed songs.
-* Uses SSH key authentication.
-* Uses SCP for file transfer.
-* Keeps synchronization state locally.
-* Does not require any software or scripts running on the Steam Frame.
-* Excludes Beat Saber's built-in song folders.
+* Detects new custom songs.
+* Detects modified custom songs.
+* Transfers only pending songs.
+* Real-time synchronization status.
+* GUI configuration and synchronization.
+* Automatic SSH key setup.
+* SSH connection test.
+* No synchronization software is required on the Steam Frame.
+* Command-line synchronization is also available.
 
 ## Current status
 
@@ -23,56 +24,136 @@ This project is currently **experimental**.
 
 It has been tested successfully with:
 
-* 1 Windows PC
+* Windows 11
 * Windows PowerShell
 * Beat Saber 1.40.8
+* 1 Windows PC
 * 1 Steam Frame
-* SSH/SCP file transfers over a local network
+* Local network SSH/SCP transfers
 
-The author has not tested the project on multiple PCs, multiple Steam Frames, other Beat Saber versions, or different Beat Saber installations.
+It has not been tested with multiple PCs, multiple Steam Frames, other Beat Saber versions, or other Windows configurations.
 
-It works on the author's setup, but compatibility with other configurations is not guaranteed.
-
-If you test it on another setup, feedback and bug reports are welcome.
+Compatibility with other setups is not guaranteed.
 
 ## Requirements
 
 ### Windows PC
 
-* Windows 11 (tested); Windows 10 has not been tested
+* Windows 10 or Windows 11
 * PowerShell
-* OpenSSH client (`ssh` and `scp`)
+* OpenSSH (`ssh`, `scp` and `ssh-keygen`)
 * Beat Saber installed
 * Beat Saber custom songs installed locally
 
+Windows 11 is the only Windows version currently tested.
+
 ### Steam Frame
 
-* SSH access
-* Network connectivity to the Windows PC
 * Beat Saber installed
+* SSH access enabled
+* Network connectivity to the Windows PC
 
-No additional software is required on the Steam Frame.
+No synchronization software is required on the Steam Frame.
 
 ## Installation
+
+Open PowerShell and move to your user directory:
+
+```powershell
+cd $env:USERPROFILE
+```
 
 Clone the repository:
 
 ```powershell
-cd $env:USERPROFILE
 git clone https://github.com/TheCakeIsALie7/BeatSaberSyncWithFrame.git
 cd BeatSaberSyncWithFrame
 ```
+
+## GUI
+
+Start the application:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\src\BeatSaberSync-GUI.ps1"
+```
+
+The GUI lets you configure:
+
+* Local Beat Saber `CustomLevels` folder
+* Steam Frame IP or hostname
+* SSH user
+* Remote `CustomLevels` path
+* SSH private key
+
+The local folder must be the actual Beat Saber `CustomLevels` folder. The GUI validates this automatically.
+
+The default SSH user is `steamos`, but it can be changed.
+
+The default remote path is the standard Steam Frame Beat Saber `CustomLevels` directory, but it can be changed.
+
+## First-time SSH setup
+
+The GUI can configure SSH automatically.
+
+1. Enter the Steam Frame IP or hostname.
+2. Check the SSH user.
+3. Check the SSH private key path.
+4. Click **Set up SSH**.
+5. A PowerShell window opens.
+6. Enter the Steam Frame SSH password.
+7. The public key is installed automatically.
+8. Close the setup window.
+9. Click **Test SSH**.
+
+After setup, synchronization uses SSH key authentication and does not require the password again.
+
+The SSH password is not stored by the application.
+
+## Synchronization
+
+Click **SYNC** in the GUI.
+
+The application displays:
+
+```text
+Songs: 473
+Pending: 1
+Copied: 0
+
+Syncing: Example Song
+```
+
+When synchronization finishes:
+
+```text
+Songs: 473
+Pending: 0
+Copied: 1
+
+Sync complete
+```
+
+Only new or changed songs are transferred.
+
+The synchronization state is stored locally on the Windows PC.
+
+## Command-line usage
+
+The synchronization engine can also be run directly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ".\src\sync-beatsaber.ps1"
+```
+
+It uses `config/config.json`.
+
+## Manual configuration
 
 Copy the example configuration:
 
 ```powershell
 Copy-Item ".\config\config.example.json" ".\config\config.json"
-```
-
-Edit the configuration:
-
-```powershell
-notepad ".\config\config.json"
 ```
 
 Example:
@@ -87,110 +168,32 @@ Example:
 }
 ```
 
-### Configuration
+### Configuration fields
 
-| Property    | Description                                  |
-| ----------- | -------------------------------------------- |
-| `source`    | Local Beat Saber `CustomLevels` directory    |
-| `frameHost` | IP address or hostname of the Steam Frame    |
-| `frameUser` | SSH user on the Steam Frame                  |
-| `framePath` | Remote Beat Saber `CustomLevels` directory   |
-| `sshKey`    | Private SSH key used to connect to the Frame |
-
-`config.json` is intentionally excluded from Git because it contains machine-specific configuration.
-
-## SSH authentication
-
-The recommended setup is SSH key authentication.
-
-Generate a key on Windows if necessary:
-
-```powershell
-ssh-keygen -t ed25519
-```
-
-Copy the public key to the Steam Frame's:
-
-```text
-~/.ssh/authorized_keys
-```
-
-Then test the connection:
-
-```powershell
-ssh -o IdentitiesOnly=yes -i "$env:USERPROFILE\.ssh\id_ed25519_frame" steamos@FRAME_IP "echo SSH_OK"
-```
-
-The expected result is:
-
-```text
-SSH_OK
-```
-
-The sync script uses the configured private key automatically.
-
-## Usage
-
-From the repository root, run:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File ".\src\sync-beatsaber.ps1"
-```
-
-The script scans the local custom song directory and compares each song against the locally stored synchronization state.
-
-For example:
-
-```text
-Source : C:\...\CustomLevels
-Frame  : steamos@FRAME_IP
-Songs  : 469
-Synced : 469
-Pending: 0
-
-Sync complete
-```
-
-If a new or modified song is detected:
-
-```text
-SYNC: 54c92 (BRAINWASHED - HicqLlie)
-OK: 54c92 (BRAINWASHED - HicqLlie)
-```
-
-Only pending songs are transferred.
-
-Running the script again without changes should therefore result in:
-
-```text
-Pending: 0
-```
+| Property    | Description                             |
+| ----------- | --------------------------------------- |
+| `source`    | Local Beat Saber `CustomLevels` folder  |
+| `frameHost` | Steam Frame IP address or hostname      |
+| `frameUser` | SSH user on the Steam Frame             |
+| `framePath` | Remote Beat Saber `CustomLevels` folder |
+| `sshKey`    | Path to the SSH private key             |
 
 ## How synchronization works
 
-For each custom song, the script records:
+For each song, the synchronization engine stores:
 
 * Song folder name
 * Number of files
 * Total file size
 * Latest file modification timestamp
 
-This information is stored locally in:
+A song is transferred when it is new or its stored metadata has changed.
 
-```text
-data/sync-state.txt
-```
+Songs are transferred from Windows to the Steam Frame using SCP.
 
-A song is transferred when:
+## Local data
 
-* It does not exist in the synchronization state, or
-* Its stored metadata has changed.
-
-The song itself is transferred using SCP directly from the Windows PC to the Steam Frame.
-
-## Local files
-
-The following files are generated locally and are not committed to Git:
+The following files are generated locally:
 
 ```text
 config/config.json
@@ -198,62 +201,70 @@ data/sync-state.txt
 data/songs.manifest
 ```
 
-They contain machine-specific configuration and synchronization state.
+These files are excluded from Git.
 
 ## Troubleshooting
 
-### SSH connection fails
+### CustomLevels is marked invalid
 
-Test SSH independently:
+The selected folder must be the actual Beat Saber `CustomLevels` directory.
 
-```powershell
-ssh -o IdentitiesOnly=yes -i "C:\Path\To\Key" steamos@FRAME_IP "echo SSH_OK"
+The folder itself must be named:
+
+```text
+CustomLevels
 ```
 
-If this does not work, fix SSH connectivity before running the sync script.
+Its location can be anywhere on the PC.
 
-### SCP is not available
+### SSH setup fails
+
+Check:
+
+* Frame IP or hostname
+* SSH user
+* Frame connectivity
+* SSH availability on the Frame
+* Frame SSH password
+
+Manual connection test:
+
+```powershell
+ssh FRAME_SSH_USER@FRAME_IP
+```
+
+### SSH test fails
+
+Run **Set up SSH** first, then **Test SSH**.
+
+The GUI uses the configured private key for authentication.
+
+### OpenSSH is missing
 
 Check:
 
 ```powershell
-Get-Command scp
-```
-
-and:
-
-```powershell
 Get-Command ssh
+Get-Command scp
+Get-Command ssh-keygen
 ```
-
-Windows OpenSSH can normally be installed through Windows Optional Features.
-
-### A song is not detected as changed
-
-The synchronization check is based on file count, total size and the latest file modification timestamp.
-
-If the contents of a file are changed without affecting those values, the change may not be detected.
 
 ## Limitations
 
-This project currently has some limitations:
-
-* Tested only on one Windows PC.
-* Tested only with one Steam Frame.
+* Tested on one Windows PC.
+* Tested with one Steam Frame.
 * Tested with Beat Saber 1.40.8.
-* No remote synchronization database is maintained on the Frame.
-* Deleted local files are not currently removed automatically from the Frame.
-* Files deleted from an existing song folder may remain on the Frame.
-* The current synchronization state is local to the Windows PC.
+* Windows 10 has not been tested.
+* Synchronization state is local to the Windows PC.
+* Deleted songs are not automatically removed from the Frame.
 * No conflict resolution is implemented.
-
-These limitations may change in future versions.
+* The GUI is launched through PowerShell rather than a compiled executable.
 
 ## Contributing
 
 Bug reports, compatibility reports and improvements are welcome.
 
-If you test the project with a different PC, Steam Frame or Beat Saber version, please report the configuration and whether synchronization worked correctly.
+If you test the project on another PC, Steam Frame or Beat Saber version, please report the configuration and whether synchronization worked correctly.
 
 ## License
 

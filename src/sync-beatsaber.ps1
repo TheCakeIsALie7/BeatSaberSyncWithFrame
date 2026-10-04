@@ -1,7 +1,8 @@
-﻿$ConfigFile = "$PSScriptRoot\..\config\config.json"
+$ConfigFile = "$PSScriptRoot\..\config\config.json"
 $DataDir = "$PSScriptRoot\..\data"
 $StateFile = "$DataDir\sync-state.txt"
 $ManifestFile = "$DataDir\songs.manifest"
+New-Item -ItemType Directory -Path $DataDir -Force | Out-Null
 
 if (-not (Test-Path -LiteralPath $ConfigFile)) {
     throw "Configuration file not found: $ConfigFile"
@@ -90,4 +91,3 @@ $Synced.Values |
     Set-Content -LiteralPath $StateFile -Encoding UTF8
 
 Write-Host "Sync complete"
-
